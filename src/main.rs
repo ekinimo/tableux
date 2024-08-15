@@ -238,7 +238,7 @@ impl Tableux {
         ret
     }
 
-    fn closes(&self, elem: &TableuxElement, path: &Vec<TableuxElement>) -> bool {
+    fn closes(&self, elem: &TableuxElement, path: &[TableuxElement]) -> bool {
         path.iter()
             .any(|x| x.sign != elem.sign && self.formulas.eq(x.formula, elem.formula))
     }
@@ -246,8 +246,8 @@ impl Tableux {
     fn closes_opt(
         &self,
         elem: &TableuxElement,
-        path: &Vec<TableuxElement>,
-        path_idx: &Vec<TableuxIdx>,
+        path:  &[TableuxElement],
+        path_idx:  &[TableuxIdx],
     ) -> Option<TableuxIdx> {
         path.iter()
             .zip(path_idx)
