@@ -331,8 +331,8 @@ impl Tableux {
         idx: TableuxIdx,
         sign1: bool,
         sign2: bool,
-        path: &Vec<TableuxElement>,
-        path_idx: &Vec<TableuxIdx>,
+        path: &[TableuxElement],
+        path_idx: &[TableuxIdx],
     ) {
         let elem1 = TableuxElement {
             parent: Some(idx),
@@ -371,8 +371,8 @@ impl Tableux {
         idx: TableuxIdx,
         sign1: bool,
         sign2: bool,
-        path: &Vec<TableuxElement>,
-        path_idx: &Vec<TableuxIdx>,
+        path: &[TableuxElement],
+        path_idx: &[TableuxIdx],
     ) {
         let elem = TableuxElement {
             parent: Some(idx),
