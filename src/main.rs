@@ -1,6 +1,5 @@
 use std::{
     collections::{
-        self,
         hash_map::Entry::{Occupied, Vacant},
         HashMap, HashSet,
     },
@@ -218,7 +217,7 @@ impl Tableux {
                 }
             }
         }
-        return ret;
+        ret
     }
     fn get_parents(&self, idx: TableuxIdx) -> Vec<TableuxElement> {
         let mut ret = vec![];
@@ -236,11 +235,11 @@ impl Tableux {
                 }
             }
         }
-        return ret;
+        ret
     }
 
     fn closes(&self, elem: &TableuxElement, path: &Vec<TableuxElement>) -> bool {
-        path.into_iter()
+        path.iter()
             .any(|x| x.sign != elem.sign && self.formulas.eq(x.formula, elem.formula))
     }
 
@@ -250,9 +249,9 @@ impl Tableux {
         path: &Vec<TableuxElement>,
         path_idx: &Vec<TableuxIdx>,
     ) -> Option<TableuxIdx> {
-        path.into_iter()
-            .zip(path_idx.into_iter())
-            .find(|(x, idx)| x.sign != elem.sign && self.formulas.eq(x.formula, elem.formula))
+        path.iter()
+            .zip(path_idx)
+            .find(|(x, _idx)| x.sign != elem.sign && self.formulas.eq(x.formula, elem.formula))
             .map(|(_, idx)| idx)
             .copied()
     }
@@ -355,7 +354,7 @@ impl Tableux {
         self.hasnt_processed.insert(len1);
         self.children.insert(len1, (Some(len2), None));
 
-        self.closes_opt(&elem2, &path, &path_idx)
+        self.closes_opt(&elem2, path, path_idx)
             .map(|x| {
                 self.closed_branches.push((len2, x));
             })
@@ -383,7 +382,7 @@ impl Tableux {
         let len1 = TableuxIdx(self.elements.len());
 
         self.elements.push(elem.clone());
-        self.closes_opt(&elem, &path, &path_idx)
+        self.closes_opt(&elem, path, path_idx)
             .map(|x| {
                 self.closed_branches.push((len1, x));
             })
@@ -399,7 +398,7 @@ impl Tableux {
         };
         let len2 = TableuxIdx(self.elements.len());
         self.elements.push(elem.clone());
-        self.closes_opt(&elem, &path, &path_idx)
+        self.closes_opt(&elem, path, path_idx)
             .map(|x| {
                 self.closed_branches.push((len2, x));
             })
@@ -448,8 +447,7 @@ impl Tableux {
             let open = if self.open.contains(&idx) {" O "} else {"   "};
             let closed = self.closed_branches.iter().find(|x| x.0 == idx)
                 .map(|x| format!(" X @ {: >3} ",x.1.0))
-                .or( Some("         ".to_string()))
-                .unwrap();
+                .unwrap_or("         ".to_string());
                 //if self.closed_branches.contains(&idx) {"X"} else {" "};
             let not_process = if self.hasnt_processed.contains(&idx) {" P "} else { "   "};
             ret.push_str(format!("\t|{: >3}\t\t|{open}|{closed}|{cant_progress}|{not_process}|\t\t",idx.0).as_str());
@@ -621,7 +619,6 @@ fn repl_helper(table:&mut Tableux,p:&str){
             .next()
             .unwrap()
             .into_inner()
-            .into_iter()
             .next()
             .unwrap(),
     );
@@ -651,7 +648,6 @@ fn parse_pairs() {
             .next()
             .unwrap()
             .into_inner()
-            .into_iter()
             .next()
             .unwrap(),
     );
@@ -678,12 +674,11 @@ fn parse_lisp_mono(
 ) -> Vec<FormulaIdx> {
     let _ = into_inner.next().unwrap();
     let args: Vec<_> = into_inner
-        .into_iter()
         .map(|x| parse_lisp_atom(pool, x))
         .flat_map(|x| x.into_iter())
         .fuse()
         .collect::<Box<[_]>>()
-        .into_iter()
+        .iter()
         .map(|x| pool.not(*x))
         .collect();
     args
@@ -699,13 +694,12 @@ fn parse_lisp_bin(
     let args = arg0
         .chain(
             (into_inner
-                .into_iter()
                 .map(|x| parse_lisp_atom(pool, dbg!(x))))
             .flat_map(|x| x.into_iter()),
         )
         .fuse()
         .collect::<Box<[_]>>()
-        .into_iter()
+        .iter()
         .fold(init, |init,arg| {
             match op.as_rule() {
                 Rule::larrow => pool.implies(init, *arg),
