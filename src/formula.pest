@@ -1,0 +1,40 @@
+WHITESPACE = _{ (" " | "\t" | "\r" | "\n")+ }
+COMMENT    = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | ("//" ~ (!"\n" ~ ANY)* ~ ("\n" | EOI)) }
+
+arrow = _{ "→" | "⊃" | "⇒" | "=>" | "->" | "implies" | "\\to" | "\\Rightarrow" | "\\rightarrow" | "\\implies" | "\\supset" }
+and   = _{ "." | "*" | "∧" | "&&" | "&" | "and" | "\\land" | "\\wedge" | "\\cdot" }
+or    = _{ "+" | "∨" | "∥" | "||" | "|" | "or" | "\\lor" | "\\vee" }
+not   = _{ "!" | "not" | "¬" | "~" | "~" | "\\neg" | "\\lnot" | "\\neg" | "\\sim " }
+iff   = _{ "⇔" | "↔" | "≡" | "==" | "<=>" | "<->" | "<==>" | "<-->" | "iff" | "\\Leftrightarrow" | "\\iff" | "\\leftrightarrow" | "\\equiv" | "if and only if" }
+
+larrow = { "→" | "⊃" | "⇒" | "=>" | "->" | "implies" | "\\to" | "\\Rightarrow" | "\\rightarrow" | "\\implies" | "\\supset" }
+land   = { "." | "*" | "∧" | "&&" | "&" | "and" | "\\land" | "\\wedge" | "\\cdot" }
+lor    = { "+" | "∨" | "∥" | "||" | "|" | "or" | "\\lor" | "\\vee" }
+lnot   = { "!" | "not" | "¬" | "~" | "~" | "\\neg" | "\\lnot" | "\\neg" | "\\sim " }
+liff   = { "⇔" | "↔" | "≡" | "==" | "<=>" | "<->" | "<==>" | "<-->" | "iff" | "\\Leftrightarrow" | "\\iff" | "\\leftrightarrow" | "\\equiv" | "if and only if" }
+
+lp   = _{ "(" }
+rp   = _{ ")" }
+name = @{ ('A'..'Z') }
+
+bracket          = _{ lp ~ infix_formula ~ rp }
+atom             = _{ name | bracket }
+negation         =  { (not ~ atom) }
+negation_or_atom = _{ negation | atom }
+conjunction      =  { negation_or_atom ~ (and ~ conjunction)* }
+disjunction      =  { conjunction ~ (or ~ disjunction)* }
+implication      =  { (disjunction ~ (arrow ~ implication)*) }
+equivalence      =  { implication ~ (iff ~ implication)* }
+infix_formula    = _{ equivalence }
+
+lisp_atom    =  { name | lisp_call }
+bin_op       = _{ land | lor | larrow | liff }
+mon_op       = _{ lnot }
+bin_call     =  { lp ~ bin_op ~ lisp_atom ~ lisp_atom* ~ rp }
+mon_call     =  { lp ~ mon_op ~ lisp_atom+ ~ rp }
+lisp_call    =  _{  name | mon_call | bin_call }
+lisp_formula =  _{ lisp_call }
+
+forth_formula = { (name | bin_op | mon_op)+ }
+
+formula = { infix_formula | lisp_formula | forth_formula }

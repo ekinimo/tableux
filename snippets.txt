@@ -1,0 +1,2 @@
+( iff ( not ( and P Q R ) ) ( or ( not P Q R ) ) )
+( iff ( not ( and P Q R S T ) ) ( or ( not P Q R S T ) ) )
