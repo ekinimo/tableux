@@ -33,9 +33,7 @@ jobs:
         run: wasm-pack build --target web --out-dir ./pkg
         
       - name: Prepare www directory
-        run: |
-          mkdir -p www
-          cp examples/index.html . || echo "No examples/index.html found"
+        run: cp examples/index.html . || echo "No examples/index.html found"
       
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
