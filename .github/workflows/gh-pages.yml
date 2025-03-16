@@ -30,12 +30,12 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Build WASM
-        run: wasm-pack build --target web --out-dir www/pkg
+        run: wasm-pack build --target web --out-dir ./pkg
         
       - name: Prepare www directory
         run: |
           mkdir -p www
-          cp examples/index.html www/ || echo "No examples/index.html found"
+          cp examples/index.html . || echo "No examples/index.html found"
       
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
