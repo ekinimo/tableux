@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Install wasm-pack if not already installed
-if ! command -v wasm-pack &> /dev/null; then
-    echo "Installing wasm-pack..."
-    curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+if ! command -v wasm-pack &>/dev/null; then
+	echo "Installing wasm-pack..."
+	curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 fi
 
 # Create www directory if it doesn't exist
@@ -17,10 +17,9 @@ echo "Building WASM package..."
 wasm-pack build --target web --out-dir www/pkg
 
 # Copy the HTML file if it doesn't exist
-if [ ! -f "www/index.html" ]; then
-    echo "Creating www/index.html..."
-    cp examples/index.html www/index.html 2>/dev/null || :
-fi
+
+echo "Copying files from examples "
+cp -R examples/. www 2>/dev/null || :
 
 # Clean up
 mv ./formula.pest src/ 2>/dev/null || :

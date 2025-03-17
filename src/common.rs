@@ -16,7 +16,7 @@ pub struct FormulaParser;
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct VarIdx(pub usize);
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct FormulaIdx(pub usize);
 
 #[derive(Copy, Clone, Debug)]
@@ -113,7 +113,9 @@ impl FormulaPool {
         len
     }
     pub fn eq(&self, t1: FormulaIdx, t2: FormulaIdx) -> bool {
-        if t1 == t2{ return true;}
+        if t1 == t2 {
+            return true;
+        }
         match (self[t1], self[t2]) {
             (Formula::Var(v1), Formula::Var(v2)) => v1 == v2,
             (Formula::Not(t1), Formula::Not(t2)) => self.eq(t1, t2),
@@ -126,7 +128,7 @@ impl FormulaPool {
         }
     }
 
-    pub fn clear(&mut self)  {
+    pub fn clear(&mut self) {
         self.formulas.clear();
         self.vars.clear();
         self.var_names.clear();
@@ -252,8 +254,8 @@ impl Tableux {
     pub fn closes_opt(
         &self,
         elem: &TableuxElement,
-        path:  &[TableuxElement],
-        path_idx:  &[TableuxIdx],
+        path: &[TableuxElement],
+        path_idx: &[TableuxIdx],
     ) -> Option<TableuxIdx> {
         path.iter()
             .zip(path_idx)
@@ -273,7 +275,7 @@ impl Tableux {
             }
         }
     }
-    
+
     pub fn step(&mut self) {
         let Some(idx) = self.open.pop() else {
             return;
@@ -418,10 +420,10 @@ impl Tableux {
         let mut stack = vec![(TableuxIdx(0), 2)];
         let mut ret = String::new();
 
-        if self.open.is_empty(){
+        if self.open.is_empty() {
             if self.cant_progress.is_empty() {
                 ret.push_str("TAUTOLOGY\n");
-            }else{
+            } else {
                 ret.push_str("NOT COMPLETE\n")
             }
         }
@@ -447,13 +449,34 @@ impl Tableux {
                 formula,
             } = self[idx];
 
-            let cant_progress = if self.cant_progress.contains(&idx) { " S "} else{ "   "};
-            let open = if self.open.contains(&idx) {" O "} else {"   "};
-            let closed = self.closed_branches.iter().find(|x| x.0 == idx)
-                .map(|x| format!(" X @ {: >3} ",x.1.0))
+            let cant_progress = if self.cant_progress.contains(&idx) {
+                " S "
+            } else {
+                "   "
+            };
+            let open = if self.open.contains(&idx) {
+                " O "
+            } else {
+                "   "
+            };
+            let closed = self
+                .closed_branches
+                .iter()
+                .find(|x| x.0 == idx)
+                .map(|x| format!(" X @ {: >3} ", x.1 .0))
                 .unwrap_or("         ".to_string());
-            let not_process = if self.hasnt_processed.contains(&idx) {" P "} else { "   "};
-            ret.push_str(format!("\t|{: >3}\t\t|{open}|{closed}|{cant_progress}|{not_process}|\t\t",idx.0).as_str());
+            let not_process = if self.hasnt_processed.contains(&idx) {
+                " P "
+            } else {
+                "   "
+            };
+            ret.push_str(
+                format!(
+                    "\t|{: >3}\t\t|{open}|{closed}|{cant_progress}|{not_process}|\t\t",
+                    idx.0
+                )
+                .as_str(),
+            );
             for _ in 0..depth {
                 ret.push('\t');
             }
@@ -466,7 +489,6 @@ impl Tableux {
             let f = self.formulas.display(formula);
             ret.push_str(f.as_str());
             ret.push_str(" ] \n");
-            
         }
         ret.push_str("\n\n");
         ret
@@ -539,7 +561,7 @@ impl Tableux {
         self.cant_progress.clear();
     }
 
-    pub fn parse_hypothesis(&mut self, formula: FormulaIdx)  {
+    pub fn parse_hypothesis(&mut self, formula: FormulaIdx) {
         let elem = TableuxElement {
             parent: None,
             sign: false,
@@ -583,26 +605,20 @@ fn parse_lisp_bin(
     let mut arg0 = parse_lisp_atom(pool, into_inner.next().unwrap()).into_iter();
     let init = arg0.next().unwrap();
     let args = arg0
-        .chain(
-            (into_inner
-                .map(|x| parse_lisp_atom(pool, x)))
-            .flat_map(|x| x.into_iter()),
-        )
+        .chain((into_inner.map(|x| parse_lisp_atom(pool, x))).flat_map(|x| x.into_iter()))
         .fuse()
         .collect::<Box<[_]>>()
         .iter()
-        .fold(init, |init,arg| {
-            match op.as_rule() {
-                Rule::larrow => pool.implies(init, *arg),
-                Rule::land => pool.and(init, *arg),
-                Rule::lor => pool.or(init, *arg),
-                Rule::liff => {
-                    let l = pool.implies(init, *arg);
-                    let r = pool.implies(init, *arg);
-                    pool.and(l, r)
-                }
-                _ => unreachable!(),
+        .fold(init, |init, arg| match op.as_rule() {
+            Rule::larrow => pool.implies(init, *arg),
+            Rule::land => pool.and(init, *arg),
+            Rule::lor => pool.or(init, *arg),
+            Rule::liff => {
+                let l = pool.implies(init, *arg);
+                let r = pool.implies(init, *arg);
+                pool.and(l, r)
             }
+            _ => unreachable!(),
         });
 
     vec![args]
@@ -619,9 +635,6 @@ fn parse_lisp_atom(pool: &mut FormulaPool, x: pest::iterators::Pair<'_, Rule>) -
     }
 }
 
-fn parse_lisp_name_str(
-    pool: &mut FormulaPool,
-    into_inner: &str,
-) -> FormulaIdx {
+fn parse_lisp_name_str(pool: &mut FormulaPool, into_inner: &str) -> FormulaIdx {
     pool.var(into_inner)
 }
