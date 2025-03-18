@@ -209,6 +209,38 @@ impl Tableux {
         }
     }
 
+    pub fn get_max_level(&self) -> usize {
+        let mut max_level = 0;
+        if self.elements.is_empty() {
+            return max_level;
+        }
+
+        let mut queue = vec![(TableuxIdx(0), 0)]; // (node_idx, level)
+        let mut visited = HashSet::new();
+
+        while let Some((idx, level)) = queue.pop() {
+            max_level = max_level.max(level);
+
+            visited.insert(idx);
+
+            if let Some((left, right)) = self.children.get(&idx) {
+                if let Some(left_idx) = left {
+                    if !visited.contains(left_idx) {
+                        queue.push((*left_idx, level + 1));
+                    }
+                }
+
+                if let Some(right_idx) = right {
+                    if !visited.contains(right_idx) {
+                        queue.push((*right_idx, level + 1));
+                    }
+                }
+            }
+        }
+
+        max_level
+    }
+
     pub fn get_parents_idx(&self, idx: TableuxIdx) -> Vec<TableuxIdx> {
         let mut ret = vec![];
         let mut idx = idx;

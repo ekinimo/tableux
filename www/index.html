@@ -15,8 +15,7 @@
             <div class="theme-toggle">
                 <button id="theme-toggle-btn" title="Toggle light/dark theme">
                     <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
                 </button>
             </div>
@@ -24,71 +23,6 @@
     </header>
 
     <main class="container">
-        <!-- Visualization Tree Section -->
-        <section id="visualization-section" class="panel">
-            <div class="panel-header">
-                <h2>Tableaux Visualization</h2>
-                <div id="status" class="status hidden"></div>
-                <div class="visualization-actions">
-                    <button id="download-svg" class="action-btn" title="Download SVG">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Download
-                    </button>
-                </div>
-            </div>
-            
-            <div id="error" class="error hidden"></div>
-            <div id="loading" class="loading hidden">
-                <svg class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                
-            </div>
-            
-            <div class="visualization-container">
-                <div id="output"></div>
-            </div>
-            
-            <!-- Step Controls -->
-            <div class="controls">
-                <div class="control-group">
-                    <button id="parse-btn" class="btn btn-primary">
-                        Parse Formula
-                    </button>
-                    <button id="step-back-btn" class="btn btn-secondary" disabled>
-                        Step Back
-                    </button>
-                    <button id="step-btn" class="btn btn-secondary" disabled>
-                        Step Forward
-                    </button>
-                    <div class="input-group">
-                        <label for="step-count">Steps</label>
-                        <input type="number" id="step-count" class="input-number" value="1" min="1" max="10">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <button id="auto-btn" class="btn btn-secondary" disabled>
-                        Auto-step
-                    </button>
-                    <button id="visualize" class="btn btn-success">
-                        Run Full Proof
-                    </button>
-                    <div class="input-group">
-                        <label for="steps">Steps</label>
-                        <input type="number" id="steps" class="input-number" value="100" min="1" max="1000">
-                    </div>
-                    <button id="clear" class="btn btn-danger">
-                        Clear
-                    </button>
-                </div>
-            </div>
-        </section>
-
         <!-- Formula Input Section -->
         <section class="panel">
             <div class="panel-header">
@@ -96,7 +30,25 @@
             </div>
             
             <div class="formula-input">
-                <textarea id="formula" rows="3" placeholder="(iff (not (and P Q R)) (or (not P) (not Q) (not R)))" class="formula-textarea"></textarea>
+                <textarea id="formula" rows="3" placeholder="(iff (not (and P Q R)) (or (not P Q R)))" class="formula-textarea"></textarea>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <button id="parse-btn" class="btn btn-primary" title="Parse the formula (Keyboard: P)">
+                        Parse Formula
+                    </button>
+                    <button id="visualize" class="btn btn-success" title="Run full proof (Keyboard: R)">
+                        Run Full Proof
+                    </button>
+                    <div class="input-group">
+                        <label for="steps">Steps</label>
+                        <input type="number" id="steps" class="input-number" value="100" min="1" max="1000">
+                    </div>
+                    <button id="clear" class="btn btn-danger" title="Clear the current proof (Keyboard: C)">
+                        Clear
+                    </button>
+                </div>
             </div>
             
             <div class="examples-section">
@@ -104,7 +56,7 @@
                 <div class="example-buttons">
                     <button class="example-btn" data-formula="(or P (not P))">Law of Excluded Middle</button>
                     <button class="example-btn" data-formula="(implies (and (implies P Q) P) Q)">Modus Ponens</button>
-                    <button class="example-btn" data-formula="(iff (not (and P Q R)) (or (not P) (not Q) (not R)))">De Morgan's Law</button>
+                    <button class="example-btn" data-formula="(iff (not (and P Q R)) (or (not P Q R)))">De Morgan's Law</button>
                     <button class="example-btn" data-formula="(and P (not P))">Contradiction</button>
                     <button class="example-btn" data-formula="(implies (and (implies (or P Q) (and R S)) (not (or (not T) U))) (or (and V W) (implies X Y)))">Complex Formula</button>
                 </div>
@@ -168,13 +120,82 @@
                             <li><span class="yellow-dot"></span> Branches that can't progress</li>
                         </ul>
                     </div>
+                    
+                    <div class="keyboard-shortcuts">
+                        <h4>Keyboard Shortcuts</h4>
+                        <div class="shortcut-list">
+                            <span class="key">P</span> <span>Parse formula</span>
+                            <span class="key">R</span> <span>Run full proof</span>
+                            <span class="key">N</span> <span>Next step</span>
+                            <span class="key">B</span> <span>Step back</span>
+                            <span class="key">C</span> <span>Clear</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Visualization Tree Section -->
+        <section id="visualization-section" class="panel">
+            <div class="panel-header">
+                <h2>Tableaux Visualization</h2>
+                <div id="status" class="status hidden"></div>
+                <div class="visualization-actions">
+                    <button id="download-svg" class="action-btn" title="Download SVG">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download
+                    </button>
+                    <button id="fullscreen-btn" class="action-btn" title="Toggle fullscreen">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                        Fullscreen
+                    </button>
+                </div>
+            </div>
+            
+            <div id="error" class="error hidden"></div>
+            <div id="loading" class="loading hidden">
+                <svg class="spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path>
+                </svg>
+                <span>Processing...</span>
+            </div>
+            
+            <div class="visualization-container">
+                <div id="output"></div>
+            </div>
+            
+            <!-- Step Controls -->
+            <div class="controls">
+                <div class="control-group">
+                    <button id="step-back-btn" class="btn btn-secondary" disabled title="Step back (Keyboard: B)">
+                        Step Back
+                    </button>
+                    <button id="step-btn" class="btn btn-secondary" disabled title="Step forward (Keyboard: N)">
+                        Step Forward
+                    </button>
+                    <div class="input-group">
+                        <label for="step-count">Steps</label>
+                        <input type="number" id="step-count" class="input-number" value="1" min="1" max="10">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <button id="auto-btn" class="btn btn-secondary" disabled>
+                        Auto-step
+                    </button>
                 </div>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>Method of Analytical Tableaux Visualizer | <a href="#" class="github-link">View on GitHub</a></p>
+        <p>Method of Analytical Tableaux Visualizer | <a href="https://www.github.com/ekinimo/tableux" class="github-link">View on GitHub</a></p>
     </footer>
 
     <!-- Script loading hint to preload WASM -->

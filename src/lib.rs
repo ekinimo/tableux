@@ -514,12 +514,13 @@ impl TableuxVisualizer {
         // Create a map to store positions (x, y)
         let mut positions = std::collections::HashMap::new();
         let mut max_width = 800;
-        let mut max_height = 600;
+        let mut max_height = 500;
 
         if self.tableux.elements.is_empty() {
             return (positions, max_width, max_height);
         }
 
+        let max_level = self.get_max_level();
         // Simple approach: assign initial positions
         self.assign_initial_positions(
             &mut positions,
@@ -533,6 +534,7 @@ impl TableuxVisualizer {
             min_node_height,
             h_spacing,
             v_spacing,
+            max_level + 1,
         );
 
         // Find minimum x coordinate to calculate offset for centering
@@ -577,6 +579,7 @@ impl TableuxVisualizer {
         min_node_height: i32,
         h_spacing: i32,
         v_spacing: i32,
+        max_level: i32,
     ) {
         // Store this node's position
         positions.insert(idx, (x, y));
@@ -602,14 +605,14 @@ impl TableuxVisualizer {
 
                     // Calculate horizontal spacing needed
                     let min_spacing = (left_width + right_width) / 2 + h_spacing;
-                    let half_width = min_spacing.max(available_width / 3);
+                    let half_width = min_spacing.max((available_width - level) / 4);
 
                     // Position left child
                     self.assign_initial_positions(
                         positions,
                         *left_idx,
                         level + 1,
-                        x - half_width,
+                        x - half_width - (max_level - level) * h_spacing,
                         next_y,
                         available_width / 2,
                         node_sizes,
@@ -617,6 +620,7 @@ impl TableuxVisualizer {
                         min_node_height,
                         h_spacing,
                         v_spacing,
+                        max_level,
                     );
 
                     // Position right child
@@ -624,7 +628,7 @@ impl TableuxVisualizer {
                         positions,
                         *right_idx,
                         level + 1,
-                        x + half_width,
+                        x + half_width + (max_level - level) * h_spacing,
                         next_y,
                         available_width / 2,
                         node_sizes,
@@ -632,6 +636,7 @@ impl TableuxVisualizer {
                         min_node_height,
                         h_spacing,
                         v_spacing,
+                        max_level,
                     );
                 }
                 (Some(child_idx), None) | (None, Some(child_idx)) => {
@@ -648,13 +653,13 @@ impl TableuxVisualizer {
                         min_node_height,
                         h_spacing,
                         v_spacing,
+                        max_level,
                     );
                 }
                 _ => {}
             }
         }
     }
-
     // Helper function to calculate node size based on text content
     fn calculate_node_size(&self, formula: &str) -> (i32, i32) {
         // Minimum node size
@@ -718,5 +723,10 @@ impl TableuxVisualizer {
         }
 
         lines
+    }
+
+    fn get_max_level(&self) -> i32 {
+        let level: usize = self.tableux.get_max_level();
+        level as i32
     }
 }

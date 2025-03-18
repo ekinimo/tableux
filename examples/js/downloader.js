@@ -34,15 +34,47 @@ function downloadCurrentSvg(visualizer) {
             return;
         }
         
+        // Get the SVG and fix any attributes for download
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
+        const svg = svgDoc.documentElement;
+        
+        // Ensure SVG has a proper viewBox
+        if (!svg.hasAttribute('viewBox') && 
+            svg.hasAttribute('width') && 
+            svg.hasAttribute('height')) {
+            
+            const width = svg.getAttribute('width');
+            const height = svg.getAttribute('height');
+            
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        }
+        
+        // Reset width/height to original values for download
+        if (svg.dataset && svg.dataset.originalWidth) {
+            svg.setAttribute('width', svg.dataset.originalWidth);
+        }
+        if (svg.dataset && svg.dataset.originalHeight) {
+            svg.setAttribute('height', svg.dataset.originalHeight);
+        }
+        
+        // Ensure background color is included
+        const bgColor = document.body.classList.contains('dark-theme') ? '#000000' : '#ffffff';
+        svg.setAttribute('style', `background-color: ${bgColor};`);
+        
+        // Serialize back to string
+        const serializer = new XMLSerializer();
+        const fixedSvgString = serializer.serializeToString(svg);
+        
         // Create a blob from the SVG string
-        const blob = new Blob([svgString], { type: 'image/svg+xml' });
+        const blob = new Blob([fixedSvgString], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
         
         // Create a temporary anchor to trigger download
         const downloadLink = document.createElement('a');
         
         // Generate a filename based on the current formula
-        const formula = document.getElementById('formula').value;
+        const formula = document.getElementById('formula')?.value || '';
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, -5);
         const filename = formula
             ? `tableaux_${formula.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}_${timestamp}.svg`
@@ -70,6 +102,7 @@ function downloadCurrentSvg(visualizer) {
 
 /**
  * Convert SVG to PNG and download it
+ * Note: This is an optional feature that can be exposed via UI if needed
  * @param {Object} visualizer - The visualizer instance 
  * @param {number} scale - Scale factor for PNG conversion (default: 2)
  */
@@ -90,8 +123,8 @@ export function downloadAsPng(visualizer, scale = 2) {
         const svgElement = container.firstChild;
         
         // Get SVG dimensions
-        const svgWidth = svgElement.getAttribute('width');
-        const svgHeight = svgElement.getAttribute('height');
+        const svgWidth = parseInt(svgElement.getAttribute('width') || '800');
+        const svgHeight = parseInt(svgElement.getAttribute('height') || '600');
         
         // Create a canvas
         const canvas = document.createElement('canvas');
@@ -116,7 +149,7 @@ export function downloadAsPng(visualizer, scale = 2) {
             const pngUrl = canvas.toDataURL('image/png');
             
             // Generate filename
-            const formula = document.getElementById('formula').value;
+            const formula = document.getElementById('formula')?.value || '';
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, -5);
             const filename = formula
                 ? `tableaux_${formula.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}_${timestamp}.png`
