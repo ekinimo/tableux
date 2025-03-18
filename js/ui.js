@@ -63,33 +63,95 @@ function cacheElements() {
  */
 function attachEventListeners() {
     // Parse button
-    elements.parseBtn.addEventListener('click', handleParse);
+    if (elements.parseBtn) {
+        elements.parseBtn.addEventListener('click', handleParse);
+    }
     
     // Step buttons
-    elements.stepBtn.addEventListener('click', handleStep);
-    elements.stepBackBtn.addEventListener('click', handleStepBack);
-    elements.autoBtn.addEventListener('click', handleAutoStep);
+    if (elements.stepBtn) {
+        elements.stepBtn.addEventListener('click', handleStep);
+    }
+    
+    if (elements.stepBackBtn) {
+        elements.stepBackBtn.addEventListener('click', handleStepBack);
+    }
+    
+    if (elements.autoBtn) {
+        elements.autoBtn.addEventListener('click', handleAutoStep);
+    }
     
     // Visualize and clear buttons
-    elements.visualizeBtn.addEventListener('click', handleVisualize);
-    elements.clearBtn.addEventListener('click', handleClear);
+    if (elements.visualizeBtn) {
+        elements.visualizeBtn.addEventListener('click', handleVisualize);
+    }
+    
+    if (elements.clearBtn) {
+        elements.clearBtn.addEventListener('click', handleClear);
+    }
     
     // Example buttons
-    elements.exampleBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            elements.formula.value = btn.dataset.formula;
+    if (elements.exampleBtns) {
+        elements.exampleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (elements.formula) {
+                    elements.formula.value = btn.dataset.formula;
+                }
+            });
         });
-    });
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboard);
+}
+
+/**
+ * Handle keyboard shortcuts
+ */
+function handleKeyboard(e) {
+    // Don't trigger shortcuts when typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    
+    switch (e.key) {
+        case 'p':
+            if (elements.parseBtn && !elements.parseBtn.disabled) {
+                elements.parseBtn.click();
+            }
+            break;
+        case 'n':
+            if (elements.stepBtn && !elements.stepBtn.disabled) {
+                elements.stepBtn.click();
+            }
+            break;
+        case 'b':
+            if (elements.stepBackBtn && !elements.stepBackBtn.disabled) {
+                elements.stepBackBtn.click();
+            }
+            break;
+        case 'r':
+            if (elements.visualizeBtn && !elements.visualizeBtn.disabled) {
+                elements.visualizeBtn.click();
+            }
+            break;
+        case 'c':
+            if (elements.clearBtn && !elements.clearBtn.disabled) {
+                elements.clearBtn.click();
+            }
+            break;
+    }
 }
 
 /**
  * Initialize the help section toggle
  */
 function initHelpToggle() {
-    elements.toggleHelpBtn.addEventListener('click', () => {
-        elements.helpContent.classList.toggle('hidden');
-        elements.toggleHelpBtn.classList.toggle('active');
-    });
+    if (elements.toggleHelpBtn && elements.helpContent) {
+        elements.toggleHelpBtn.addEventListener('click', () => {
+            elements.helpContent.classList.toggle('hidden');
+            elements.toggleHelpBtn.classList.toggle('active');
+        });
+    }
 }
 
 /**
@@ -99,12 +161,19 @@ async function handleParse() {
     try {
         hideError();
         showLoading();
-        disableButton(elements.parseBtn);
         
-        const formula = elements.formula.value;
+        if (elements.parseBtn) {
+            disableButton(elements.parseBtn);
+        }
         
-        // Use the correct function name with snake_case
-        const result = await visualizer.instance.parse_formula(formula.trim());
+        const formula = elements.formula ? elements.formula.value.trim() : '';
+        
+        if (!formula) {
+            throw new Error("Please enter a formula");
+        }
+        
+        // Parse the formula
+        const result = await visualizer.instance.parse_formula(formula);
         
         // Check if parsing was successful
         if (result && typeof result === 'string' && result.startsWith('Parse error:')) {
@@ -124,7 +193,9 @@ async function handleParse() {
     } finally {
         // Always hide the loading indicator and enable the button
         hideLoading();
-        enableButton(elements.parseBtn);
+        if (elements.parseBtn) {
+            enableButton(elements.parseBtn);
+        }
     }
 }
 
@@ -134,15 +205,14 @@ async function handleParse() {
 function handleStep() {
     try {
         hideError();
-        showLoading(); // Show loading indicator for step operation too
+        showLoading();
         
-        const steps = parseInt(elements.stepCount.value, 10);
+        const steps = parseInt(elements.stepCount ? elements.stepCount.value : 1, 10);
         
         if (isNaN(steps) || steps < 1) {
             throw new Error("Please enter a valid step count");
         }
         
-        // Use the correct function name with snake_case
         const madeProgress = visualizer.instance.step(steps);
         
         // Update history if we've moved beyond the current point
@@ -163,7 +233,6 @@ function handleStep() {
     } catch (e) {
         showError(e.message);
     } finally {
-        // Always hide loading when done
         hideLoading();
     }
 }
@@ -174,9 +243,8 @@ function handleStep() {
 function handleStepBack() {
     try {
         hideError();
-        showLoading(); // Show loading for consistency
+        showLoading();
         
-        // No need to call WASM for this operation, just navigate the history
         if (visualizer.state.historyIndex > 0) {
             visualizer.state.historyIndex--;
             renderVisualization();
@@ -197,7 +265,7 @@ function handleAutoStep() {
         hideError();
         showLoading();
         
-        const steps = parseInt(elements.stepCount.value, 10);
+        const steps = parseInt(elements.stepCount ? elements.stepCount.value : 1, 10);
         
         if (isNaN(steps) || steps < 1) {
             throw new Error("Please enter a valid step count");
@@ -208,7 +276,11 @@ function handleAutoStep() {
             // Stop auto-stepping
             clearInterval(visualizer.state.autoStepInterval);
             visualizer.state.autoStepInterval = null;
-            elements.autoBtn.textContent = "Auto-step";
+            
+            if (elements.autoBtn) {
+                elements.autoBtn.textContent = "Auto-step";
+            }
+            
             hideLoading();
             return;
         }
@@ -219,14 +291,20 @@ function handleAutoStep() {
         }
         
         // Start auto-stepping
-        elements.autoBtn.textContent = "Stop";
+        if (elements.autoBtn) {
+            elements.autoBtn.textContent = "Stop";
+        }
         
         visualizer.state.autoStepInterval = setInterval(() => {
             try {
                 if (visualizer.instance.is_complete()) {
                     clearInterval(visualizer.state.autoStepInterval);
                     visualizer.state.autoStepInterval = null;
-                    elements.autoBtn.textContent = "Auto-step";
+                    
+                    if (elements.autoBtn) {
+                        elements.autoBtn.textContent = "Auto-step";
+                    }
+                    
                     hideLoading();
                     updateButtonStates();
                     return;
@@ -237,7 +315,11 @@ function handleAutoStep() {
                 if (!madeProgress && !visualizer.instance.is_complete()) {
                     clearInterval(visualizer.state.autoStepInterval);
                     visualizer.state.autoStepInterval = null;
-                    elements.autoBtn.textContent = "Auto-step";
+                    
+                    if (elements.autoBtn) {
+                        elements.autoBtn.textContent = "Auto-step";
+                    }
+                    
                     showError('Auto-step stopped: No progress made');
                     hideLoading();
                     updateButtonStates();
@@ -245,7 +327,11 @@ function handleAutoStep() {
             } catch (e) {
                 clearInterval(visualizer.state.autoStepInterval);
                 visualizer.state.autoStepInterval = null;
-                elements.autoBtn.textContent = "Auto-step";
+                
+                if (elements.autoBtn) {
+                    elements.autoBtn.textContent = "Auto-step";
+                }
+                
                 showError(`Auto-step error: ${e.message}`);
                 hideLoading();
                 updateButtonStates();
@@ -263,7 +349,6 @@ function handleAutoStep() {
  */
 function handleStepForAutoStep(steps) {
     try {
-        // Use the correct function name with snake_case
         const madeProgress = visualizer.instance.step(steps);
         
         // Update history if we've moved beyond the current point
@@ -291,10 +376,22 @@ function handleVisualize() {
     try {
         hideError();
         showLoading();
-        disableButton(elements.visualizeBtn);
         
-        const formula = elements.formula.value;
-        const steps = parseInt(elements.steps.value, 10);
+        if (elements.visualizeBtn) {
+            disableButton(elements.visualizeBtn);
+        }
+        
+        const formula = elements.formula ? elements.formula.value.trim() : '';
+        
+        if (!formula) {
+            throw new Error("Please enter a formula");
+        }
+        
+        const steps = parseInt(elements.steps ? elements.steps.value : 100, 10);
+        
+        if (isNaN(steps) || steps < 1) {
+            throw new Error("Please enter a valid step count");
+        }
         
         // Use the correct method name: instance.parse_and_prove
         const svgOutput = visualizer.instance.parse_and_prove(formula, steps);
@@ -305,7 +402,15 @@ function handleVisualize() {
         }
         
         // Update visualization
-        elements.output.innerHTML = svgOutput;
+        if (elements.output) {
+            elements.output.innerHTML = svgOutput;
+            
+            // Enhance SVG for better display
+            const svg = elements.output.querySelector('svg');
+            if (svg) {
+                enhanceSvg(svg);
+            }
+        }
         
         // Update visualizer state to reflect successful parsing
         visualizer.state.isFormulaParsed = true;
@@ -320,8 +425,39 @@ function handleVisualize() {
     } finally {
         // Always hide loading and enable button, even on error
         hideLoading();
-        enableButton(elements.visualizeBtn);
+        if (elements.visualizeBtn) {
+            enableButton(elements.visualizeBtn);
+        }
     }
+}
+
+/**
+ * Enhance SVG for better display
+ * @param {SVGElement} svg - SVG element to enhance
+ */
+function enhanceSvg(svg) {
+    if (!svg) return;
+    
+    // Add CSS class for responsive sizing
+    svg.classList.add('responsive-svg');
+    
+    // Set attributes for better display
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', 'auto');
+    
+    // Add viewBox if missing
+    if (!svg.hasAttribute('viewBox') && 
+        svg.hasAttribute('width') && 
+        svg.hasAttribute('height')) {
+        
+        const width = svg.getAttribute('width');
+        const height = svg.getAttribute('height');
+        
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    }
+    
+    // Set preserveAspectRatio for better scaling
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 }
 
 /**
@@ -333,7 +469,10 @@ function handleClear() {
         if (visualizer.state.autoStepInterval) {
             clearInterval(visualizer.state.autoStepInterval);
             visualizer.state.autoStepInterval = null;
-            elements.autoBtn.textContent = "Auto-step";
+            
+            if (elements.autoBtn) {
+                elements.autoBtn.textContent = "Auto-step";
+            }
         }
         
         // Reset state
@@ -345,10 +484,15 @@ function handleClear() {
         visualizer.instance = new visualizer.instance.constructor();
         
         // Clear output
-        elements.output.innerHTML = '';
+        if (elements.output) {
+            elements.output.innerHTML = '';
+        }
         
         // Hide status and error
-        elements.status.classList.add('hidden');
+        if (elements.status) {
+            elements.status.classList.add('hidden');
+        }
+        
         hideError();
         hideLoading();
         
@@ -364,6 +508,8 @@ function handleClear() {
  */
 function renderVisualization() {
     try {
+        if (!elements.output) return;
+        
         let svgString;
         
         if (visualizer.state.historyIndex >= 0 && 
@@ -376,6 +522,13 @@ function renderVisualization() {
         }
         
         elements.output.innerHTML = svgString;
+        
+        // Enhance SVG for better display
+        const svg = elements.output.querySelector('svg');
+        if (svg) {
+            enhanceSvg(svg);
+        }
+        
         updateStatus();
     } catch (e) {
         showError(`Rendering error: ${e.message}`);
@@ -389,6 +542,8 @@ function renderVisualization() {
  * Update the status indicator based on current state
  */
 function updateStatus() {
+    if (!elements.status) return;
+    
     const status = elements.status;
     status.classList.remove('hidden', 'success', 'warning');
     
@@ -413,14 +568,27 @@ function updateButtonStates() {
     const state = visualizer.state;
     
     // Step buttons
-    elements.stepBackBtn.disabled = state.historyIndex <= 0;
-    elements.stepBtn.disabled = !state.isFormulaParsed || visualizer.instance.is_complete();
-    elements.autoBtn.disabled = !state.isFormulaParsed || visualizer.instance.is_complete();
+    if (elements.stepBackBtn) {
+        elements.stepBackBtn.disabled = state.historyIndex <= 0;
+    }
+    
+    if (elements.stepBtn) {
+        elements.stepBtn.disabled = !state.isFormulaParsed || visualizer.instance.is_complete();
+    }
+    
+    if (elements.autoBtn) {
+        elements.autoBtn.disabled = !state.isFormulaParsed || visualizer.instance.is_complete();
+    }
     
     // If auto-stepping is active, disable step buttons
     if (state.autoStepInterval) {
-        elements.stepBtn.disabled = true;
-        elements.stepBackBtn.disabled = true;
+        if (elements.stepBtn) {
+            elements.stepBtn.disabled = true;
+        }
+        
+        if (elements.stepBackBtn) {
+            elements.stepBackBtn.disabled = true;
+        }
     }
 }
 
@@ -430,6 +598,9 @@ function updateButtonStates() {
  */
 function showError(message) {
     hideLoading(); // Always hide loading when showing an error
+    
+    if (!elements.error) return;
+    
     elements.error.textContent = message;
     elements.error.classList.remove('hidden');
 }
@@ -438,6 +609,8 @@ function showError(message) {
  * Hide error message
  */
 function hideError() {
+    if (!elements.error) return;
+    
     elements.error.textContent = '';
     elements.error.classList.add('hidden');
 }
@@ -446,16 +619,18 @@ function hideError() {
  * Show loading indicator
  */
 function showLoading() {
+    if (!elements.loading) return;
+    
     elements.loading.classList.remove('hidden');
-    elements.loading.classList.add('flex'); // Using flex display for alignment
 }
 
 /**
  * Hide loading indicator
  */
 function hideLoading() {
+    if (!elements.loading) return;
+    
     elements.loading.classList.add('hidden');
-    elements.loading.classList.remove('flex');
 }
 
 /**
@@ -463,7 +638,9 @@ function hideLoading() {
  * @param {HTMLElement} button - The button to disable
  */
 function disableButton(button) {
-    button.disabled = true;
+    if (button) {
+        button.disabled = true;
+    }
 }
 
 /**
@@ -471,5 +648,7 @@ function disableButton(button) {
  * @param {HTMLElement} button - The button to enable
  */
 function enableButton(button) {
-    button.disabled = false;
+    if (button) {
+        button.disabled = false;
+    }
 }

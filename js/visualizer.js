@@ -34,9 +34,7 @@ export async function initVisualizer() {
             autoStep,
             parseAndProve,
             reset,
-            generateSvg,
-            isComplete: () => visualizer.is_complete(),
-            isTautology: () => visualizer.is_tautology()
+            generateSvg
         };
     } catch (e) {
         console.error("Failed to load WASM module:", e);

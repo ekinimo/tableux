@@ -109,18 +109,27 @@
     box-sizing: border-box;
 }
 
+html {
+    width: 100%;
+    height: 100%;
+}
+
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     line-height: 1.5;
     transition: background-color 0.3s ease, color 0.3s ease;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
+    width: 100%;
 }
 
 /* Header */
@@ -190,6 +199,7 @@ main {
 .panel-header {
     padding: 1rem;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     border-bottom: 1px solid var(--panel-border);
 }
@@ -198,6 +208,13 @@ main {
     font-size: 1.25rem;
     font-weight: 600;
     flex-grow: 1;
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .panel-header h2 {
+        margin-bottom: 0;
+    }
 }
 
 /* Status indicators */
@@ -206,6 +223,7 @@ main {
     border-radius: 0.25rem;
     font-size: 0.875rem;
     font-weight: 500;
+    display: inline-block;
 }
 
 .status.success {
@@ -224,7 +242,7 @@ main {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 /* Error display */
@@ -235,7 +253,7 @@ main {
     color: var(--status-error-text);
     border-left: 4px solid var(--red-600);
     border-radius: 0.25rem;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
     font-size: 0.875rem;
 }
 
@@ -249,34 +267,112 @@ main {
 }
 
 .spinner {
+    -webkit-animation: spin 1s linear infinite;
+    -moz-animation: spin 1s linear infinite;
     animation: spin 1s linear infinite;
     height: 1.25rem;
     width: 1.25rem;
     margin-right: 0.75rem;
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
 }
 
-/* Visualization area */
+@-moz-keyframes spin {
+    from { -moz-transform: rotate(0deg); }
+    to { -moz-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Visualization area - FIXED FOR SVG DISPLAY */
 .visualization-container {
-    height: 500px;
+    height: auto;
+    min-height: 500px;
+    max-height: 70vh;
     overflow: auto;
     background-color: var(--visualization-bg);
     border: 1px solid var(--panel-border);
     border-radius: 0.25rem;
     margin: 1rem;
+    position: relative;
     transition: background-color 0.3s ease;
 }
 
 #output {
     padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* SVG Responsiveness Fixes */
+#output svg {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100%;
+    display: block;
+}
+
+/* For Firefox-specific fixes */
+@-moz-document url-prefix() {
+    #output svg {
+        width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* Fix text positioning in Firefox */
+    #output svg text {
+        dominant-baseline: text-before-edge;
+    }
+}
+
+/* Responsive SVG class - used by JS */
+.responsive-svg {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100%;
+}
+
+/* Fullscreen mode */
+.fullscreen-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    max-height: none;
+    z-index: 9999;
+    margin: 0;
+    padding: 1rem;
+    border-radius: 0;
+    background-color: var(--visualization-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fullscreen-mode #output {
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.fullscreen-mode #output svg {
+    max-width: 90%;
+    max-height: 90vh;
 }
 
 /* Controls */
@@ -292,6 +388,7 @@ main {
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .input-group {
@@ -311,7 +408,7 @@ main {
     border: 1px solid var(--input-border);
     border-radius: 0.25rem;
     text-align: center;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
     background-color: var(--input-bg);
     color: var(--input-text);
     transition: border-color 0.2s, background-color 0.3s ease, color 0.3s ease;
@@ -324,7 +421,7 @@ main {
     border-radius: 0.25rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
 }
 
 .btn:active {
@@ -394,6 +491,7 @@ main {
 .visualization-actions {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 /* Formula input section */
@@ -406,7 +504,7 @@ main {
     padding: 0.75rem;
     border: 1px solid var(--input-border);
     border-radius: 0.25rem;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
     font-size: 0.875rem;
     line-height: 1.5;
     resize: vertical;
@@ -543,7 +641,7 @@ main {
 }
 
 .syntax-table td.code {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
     font-size: 0.8125rem;
 }
 
@@ -591,6 +689,45 @@ main {
     background-color: var(--node-stuck-bg);
 }
 
+/* Keyboard shortcuts help */
+.keyboard-shortcuts {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.dark-theme .keyboard-shortcuts {
+    border-top-color: var(--gray-600);
+}
+
+.keyboard-shortcuts h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.shortcut-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.key {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    background-color: var(--gray-100);
+    border: 1px solid var(--gray-300);
+    border-radius: 0.25rem;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 0.75rem;
+}
+
+.dark-theme .key {
+    background-color: var(--gray-700);
+    border-color: var(--gray-600);
+}
+
 /* Footer */
 footer {
     margin-top: 2rem;
@@ -620,6 +757,8 @@ footer a:hover {
     
     .visualization-actions {
         align-self: flex-start;
+        margin-top: 0.5rem;
+        width: 100%;
     }
     
     .controls {
@@ -629,5 +768,14 @@ footer a:hover {
     .control-group {
         width: 100%;
         justify-content: space-between;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .visualization-container {
+        max-height: 60vh;
     }
 }
